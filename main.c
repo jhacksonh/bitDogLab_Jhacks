@@ -33,8 +33,6 @@ int main()
 
     displayInit(PIN_DISPLAY_IN, PIN_DISPLAY_OUT);
     NP_Init(NUM_LEDS, PIN_LEDS);
-    // Write("Funciona",0,2,false);
-    // Display();
     bool showDisplay = true;
 while (1){
     NP_DrawLeds(health, 10, 0, 275, NULL,300); //comando desenha os leds com cores aleatorias
