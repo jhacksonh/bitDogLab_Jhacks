@@ -46,10 +46,15 @@ int main()
     int sizeClock = sizeof(clock) / sizeof(clock[0]);
     int sizeColorClock = sizeof(colorClock) / sizeof(colorClock[0]);
     bool showDisplay = true;
+    int counter = 0;
     NP_Init(NUM_LEDS, PIN_LEDS);
-    displayInit(PIN_DISPLAY_IN, PIN_DISPLAY_OUT);
+    Display_Init(PIN_DISPLAY_IN, PIN_DISPLAY_OUT);
+
+    Display_Write("Jhacksonh", 0, 2, true);
+    Display_Show();
+
     for (int r = 0; r < sizeClock; r++)
-{
+    {
         for (int c = 0; c < sizeClock; c++)
         {
             colorClock[r][c][0] = 0;
@@ -69,24 +74,34 @@ int main()
         sleep_ms(200);
     }
     NP_ResetLeds(); // comando para resetar os leds
+    int ledCenter[1] = {12};
+    uint16_t colorLedCenter[1][3] = {
+        {0, 100, 0},
+    };
+    NP_DrawLeds(ledCenter, 1, 0, 0, colorLedCenter);
     sleep_ms(500);
+    int counterMinites = 0;
     while (1)
     {
         // NP_DrawLeds(health, 10, 0, 275, NULL); //comando desenha os leds com cores aleatorias
         // NP_DrawLeds(health, sizeHealth, 0, 0, colorHealth); //comando desenha os Leds com as cores passadas, em cada posição
         // for para exibir as cores que foram passadas na combinação
-        for (size_t i = 0; i < sizeClock; i++)
+        if (counter == 5)
         {
+            counterMinites++;
+            sprintf(result, "Min: %d", counterMinites);
+            Display_Write("Jhacksonh", 0, 2, false);
+            Display_Write(result, 0, 2, false);
+            Display_Write(NP_GetStatus(), 0, 1, true);
+            Display_Show();
+            counter = 0;
+            // showDisplay = false;
+        }
+        for (size_t i = 0; i < sizeClock; i++){
             NP_DrawLeds(clock, sizeClock, 0, 0, colorClock[i]); // comando desenha os leds com cores aleatorias
             sleep_ms(1000);
-            if (showDisplay)
-            {
-                Write("Jhacsonh", 0, 2, false);
-                Write(NP_GetStatus(), 0, 1, false);
-                Display();
-                showDisplay = false;
-            }
         }
+        counter++;
         // sleep_ms(200);
     }
 }

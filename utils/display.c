@@ -30,35 +30,32 @@ typedef struct {
 } TextAccumulator;
 
 static TextAccumulator textAccumulator = {.count = 0};
+static TextElement *prev;
 
 // Função para inicializar o I2C
-void displayInit(uint pin_in, uint pin_out) {
+void Display_Init(uint pin_in, uint pin_out) {
     i2c_init(i2c1, 400000); // Inicializa o I2C com a frequência de 400 kHz
     gpio_set_function(pin_in, GPIO_FUNC_I2C);
     gpio_set_function(pin_out, GPIO_FUNC_I2C);
     gpio_pull_up(pin_in);
     gpio_pull_up(pin_out);
 }
-
 // Função para limpar o display
-void clear_display(ssd1306_t *display) {
+static void Clear(ssd1306_t *display) {
     ssd1306_clear(display);
-    sleep_us(SLEEPTIME); // Tempo de espera após limpar o display
+    sleep_us(50); // Tempo de espera após limpar o display
+    memset(&textAccumulator, 0, sizeof(textAccumulator));   // Limpa o buffer de saída do display                                                                                                
 }
-
 // Função para inicializar o display
-static void init_display(ssd1306_t *display) {
+static void Render(ssd1306_t *display) {
     display->external_vcc = false;
     ssd1306_init(display, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x3C, i2c1);
-    clear_display(display);
 }
-
 // Função para desenhar o texto no display
 static void draw_text(ssd1306_t *display, int x, int y, int scale, const char *buffer) {
     ssd1306_draw_string(display, x, y, scale, buffer);
     ssd1306_show(display);
 }
-
 // Função para converter texto para maiúsculas
 static char* to_uppercase(const char *text) {
     static char uppercased[128];
@@ -81,21 +78,11 @@ static void process_line_break(TextElement *element, int *currentLineLength, int
         }
     }
 }
-
-/**
- * @brief Função para adicionar texto ao buffer de saída do display
- *
- * @param[in] text: texto a ser adicionado
- * @param[in] x: coordenada x do texto
- * @param[in] scale: escala do texto
- */
-void Write(const char *text, int x, int scale,bool justified) {
-
+void Display_Write(const char *text, int x, int scale,bool justified) {
     // Verificar se o buffer de saída do display está cheio
     if (textAccumulator.count >= sizeof(textAccumulator.elements) / sizeof(TextElement)) {
         return;
     }
-
     // Calcular largura e altura do texto
     int maxWidth = DISPLAY_WIDTH;
     int textHeight = round(CHAR_HEIGHT * scale);
@@ -115,7 +102,7 @@ void Write(const char *text, int x, int scale,bool justified) {
     if (textAccumulator.count == 0) {
         element->y = 0;
     } else {
-        TextElement *prev = &textAccumulator.elements[textAccumulator.count - 1];
+        prev = &textAccumulator.elements[textAccumulator.count - 1];
         int scalePrev = prev->scale == 2 ? 2 : (5*round(prev->scale/2))-prev->scale;
         element->y = prev->y + CHAR_HEIGHT*prev->scale-scalePrev;
     }
@@ -161,15 +148,14 @@ void Write(const char *text, int x, int scale,bool justified) {
     // Incrementar contagem de elementos do buffer de saída do display
     textAccumulator.count++;
 }
-
-void Display() {
+void Display_Show() {
     ssd1306_t display;
-    init_display(&display);
-
+    Render(&display);
     for (int i = 0; i < textAccumulator.count; i++) {
         TextElement *element = &textAccumulator.elements[i];
         char *text = to_uppercase(element->text);
         draw_text(&display, element->x, element->y, element->scale, text);
     }
-    memset(&textAccumulator, 0, sizeof(textAccumulator));
+    Clear(&display);
+    // memset(&textAccumulator, 0, sizeof(textAccumulator));   // Limpa o buffer de saída do display                                                                                                
 }

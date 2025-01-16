@@ -65,17 +65,6 @@ static void FreeRGB(){
     }
 }
 // Função para definir a cor de um LED
-static void WriteLeds(){
-    if (LEDS_RGB == NULL){
-        status = "Erro: LEDs nao inicializados";
-        return;
-    }
-    for (int i = 0; i < LED_COUNT; i++){
-        pio_sm_put_blocking(np_pio, sm, LEDS_RGB[i].G);
-        pio_sm_put_blocking(np_pio, sm, LEDS_RGB[i].R);
-        pio_sm_put_blocking(np_pio, sm, LEDS_RGB[i].B);
-    }
-}
 
 // Função de inicialização
 void NP_Init(uint led_count, uint pin){
@@ -102,19 +91,27 @@ void NP_Init(uint led_count, uint pin){
     ws2818b_program_init(np_pio, sm, offset, pin, 800000); // Inicializa o programa WS2818b
     InitLEDS();
 }
+static void WriteLeds(){
+    if (LEDS_RGB == NULL){
+        status = "Erro: LEDs nao inicializados";
+        return;
+    }
+    for (int i = 0; i < LED_COUNT; i++){
+        pio_sm_put_blocking(np_pio, sm, LEDS_RGB[i].G);
+        pio_sm_put_blocking(np_pio, sm, LEDS_RGB[i].R);
+        pio_sm_put_blocking(np_pio, sm, LEDS_RGB[i].B);
+    }
+}
 
 void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint16_t (*RGB_Colors)[3]) {
     if (sizePosDrawOn <= 0 || drawPosLeds == NULL) {
         status = "Erro: Posições de LEDs inválidas.";
         return;
     }
-
     // Ajustando min e max com segurança
     max = max > 255 ? 255 : (max <= 0 ? 0 :(RGB_Colors != NULL)?0:max);
     min = min > 255 ? 255 : (min <= 0 ? 0 :(RGB_Colors != NULL)?0:min);
-
     int erro[11] = {21, 22, 23, 16, 13, 12, 11, 6, 3, 2, 1};
-
     // Quando RGB_Colors é NULL e max é 0
     if (RGB_Colors == NULL && max == 0) {
         sizePosDrawOn = sizeof(erro) / sizeof(erro[0]);
@@ -125,7 +122,6 @@ void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint1
             status = "Erro: Falha ao alocar memória para drawPosLeds.";
             return;
         }
-
         memcpy(newDrawPosLeds, erro, sizePosDrawOn * sizeof(int)); // Copiar o conteúdo do erro
         drawPosLeds = newDrawPosLeds; // Atualizar drawPosLeds com a nova alocação
 
@@ -135,7 +131,6 @@ void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint1
             free(drawPosLeds);  // Liberar memória se falhar
             return;
         }
-
         // Inicializar RGB_Colors com valores padrão
         for (size_t i = 0; i < sizePosDrawOn; i++) {
             RGB_Colors[i][0] = 2;
@@ -161,9 +156,9 @@ void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint1
             }
         }
         if (!isLedOn){ // LED apagado
-            LEDS_RGB[i].R = 0;
-            LEDS_RGB[i].G = 0;
-            LEDS_RGB[i].B = 0;
+            LEDS_RGB[i].R = LEDS_RGB[i].R == 0?0:LEDS_RGB[i].R;
+            LEDS_RGB[i].G = LEDS_RGB[i].G == 0?0:LEDS_RGB[i].G;
+            LEDS_RGB[i].B = LEDS_RGB[i].B == 0?0:LEDS_RGB[i].B;
         }
     }
     WriteLeds();
