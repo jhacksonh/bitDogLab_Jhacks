@@ -77,6 +77,7 @@ target_include_directories(bitDogBab_Jhacks PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/libsI/
     ${CMAKE_CURRENT_LIST_DIR}/libsUtils/
+    ${CMAKE_CURRENT_LIST_DIR}/assets/
 
 )
 

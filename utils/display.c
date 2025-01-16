@@ -70,7 +70,6 @@ static char* to_uppercase(const char *text) {
     uppercased[i] = '\0';
     return uppercased;
 }
-
 // Função auxiliar para processar quebra de linha
 static void process_line_break(TextElement *element, int *currentLineLength, int *lastSpaceIndex, int *lastSpaceDestIndex, int *destIndex, const char *text, int maxWidth, double charWidth, int *i) {
     if (*currentLineLength >= maxWidth) {

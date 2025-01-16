@@ -5,7 +5,7 @@
 
 // Leds_neopixels
 void NP_Init(uint led_count, uint pin);
-void NP_DrawLeds(int* drawPosLeds, size_t sizePosDrawOn, int min, int max,uint16_t (*RGB_Colors)[3], uint32_t time);
+void NP_DrawLeds(int* drawPosLeds, size_t sizePosDrawOn, int min, int max,uint16_t (*RGB_Colors)[3]);
 char *NP_GetStatus();
 void NP_ResetLeds();
 #endif

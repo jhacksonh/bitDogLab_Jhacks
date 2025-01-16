@@ -49,9 +49,11 @@ static uint8_t *randIntRGB(int min,int max){
         status = "Erro ao alocar memoria para RGB";
         return NULL;
     }
-    rgb[0] = rand() % (max - min+1) + min;
-    rgb[1] = rand() % (max - min+1) + min;
-    rgb[2] = rand() % (max - min+1) + min;
+    int calc = (max-min+1);
+    uint8_t r=(rand()%calc)+min,g=(rand()%calc)+min,b=(rand()%calc)+min;
+    rgb[0] = r>g && r>b?r:0;
+    rgb[1] = g>b && g>r?g:0;
+    rgb[2] = b>r && b>g?b:0;
     return rgb;
 }
 
@@ -101,15 +103,15 @@ void NP_Init(uint led_count, uint pin){
     InitLEDS();
 }
 
-void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint16_t (*RGB_Colors)[3], uint32_t time) {
+void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint16_t (*RGB_Colors)[3]) {
     if (sizePosDrawOn <= 0 || drawPosLeds == NULL) {
         status = "Erro: Posições de LEDs inválidas.";
         return;
     }
 
     // Ajustando min e max com segurança
-    max = max > 255 ? 255 : (max < 0 ? 0 : max);
-    min = min > 255 ? 255 : (min < 0 ? 0 : min);
+    max = max > 255 ? 255 : (max <= 0 ? 0 :(RGB_Colors != NULL)?0:max);
+    min = min > 255 ? 255 : (min <= 0 ? 0 :(RGB_Colors != NULL)?0:min);
 
     int erro[11] = {21, 22, 23, 16, 13, 12, 11, 6, 3, 2, 1};
 
@@ -139,6 +141,7 @@ void NP_DrawLeds(int *drawPosLeds, size_t sizePosDrawOn, int min, int max, uint1
             RGB_Colors[i][0] = 2;
             RGB_Colors[i][1] = 0;
             RGB_Colors[i][2] = 0;
+            
         }
         status = "ERRO: voce nao informou as cores para os leds.";
     }
@@ -172,6 +175,12 @@ char *NP_GetStatus(){
 
 // Função para resetar todos os LEDs
 void NP_ResetLeds(){
+    for (int i = 0; i < LED_COUNT; i++){
+        LEDS_RGB[i].R = 0;
+        LEDS_RGB[i].G = 0;
+        LEDS_RGB[i].B = 0;
+    }
+    WriteLeds(); 
     FreeRGB();
     InitLEDS();
 }
