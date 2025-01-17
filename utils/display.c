@@ -43,13 +43,13 @@ void Display_Init(uint pin_in, uint pin_out) {
 // Função para limpar o display
 static void Clear(ssd1306_t *display) {
     ssd1306_clear(display);
-    sleep_us(50); // Tempo de espera após limpar o display
-    memset(&textAccumulator, 0, sizeof(textAccumulator));   // Limpa o buffer de saída do display                                                                                                
+    sleep_us(50); // Tempo de espera após limpar o display                                                                                              
 }
 // Função para inicializar o display
 static void Render(ssd1306_t *display) {
     display->external_vcc = false;
     ssd1306_init(display, DISPLAY_WIDTH, DISPLAY_HEIGHT, 0x3C, i2c1);
+    Clear(display);
 }
 // Função para desenhar o texto no display
 static void draw_text(ssd1306_t *display, int x, int y, int scale, const char *buffer) {
@@ -103,8 +103,8 @@ void Display_Write(const char *text, int x, int scale,bool justified) {
         element->y = 0;
     } else {
         prev = &textAccumulator.elements[textAccumulator.count - 1];
-        int scalePrev = prev->scale == 2 ? 2 : (5*round(prev->scale/2))-prev->scale;
-        element->y = prev->y + CHAR_HEIGHT*prev->scale-scalePrev;
+        // int scalePrev = prev->scale == 2 ? 2 : (5*round(prev->scale/2))-prev->scale;
+        element->y = prev->y + CHAR_HEIGHT*prev->scale + 1;
     }
     // Percorrer o texto e adicionar ao buffer de saída do display
     for (int i = 0; text[i] != '\0'; i++) {
@@ -156,6 +156,6 @@ void Display_Show() {
         char *text = to_uppercase(element->text);
         draw_text(&display, element->x, element->y, element->scale, text);
     }
-    Clear(&display);
+    memset(&textAccumulator, 0, sizeof(textAccumulator));   // Limpa o buffer de saída do display  
     // memset(&textAccumulator, 0, sizeof(textAccumulator));   // Limpa o buffer de saída do display                                                                                                
 }
